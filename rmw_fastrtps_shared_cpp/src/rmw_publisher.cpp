@@ -37,24 +37,8 @@ __rmw_destroy_publisher(
   const rmw_node_t * node,
   rmw_publisher_t * publisher)
 {
-  if (!node) {
-    RMW_SET_ERROR_MSG("node handle is null");
-    return RMW_RET_ERROR;
-  }
-
-  if (node->implementation_identifier != identifier) {
-    RMW_SET_ERROR_MSG("publisher handle not from this implementation");
-    return RMW_RET_ERROR;
-  }
-
-  if (!publisher) {
-    RMW_SET_ERROR_MSG("publisher handle is null");
-    return RMW_RET_ERROR;
-  }
-  if (publisher->implementation_identifier != identifier) {
-    RMW_SET_ERROR_MSG("publisher handle not from this implementation");
-    return RMW_RET_ERROR;
-  }
+  assert(node->implementation_identifier == identifier);
+  assert(publisher->implementation_identifier == identifier);
 
   auto common_context = static_cast<rmw_dds_common::Context *>(node->context->impl->common);
   auto info = static_cast<const CustomPublisherInfo *>(publisher->data);
@@ -76,10 +60,7 @@ __rmw_destroy_publisher(
 
   auto participant_info =
     static_cast<CustomParticipantInfo *>(node->context->impl->participant_info);
-  return destroy_publisher(
-    identifier,
-    participant_info,
-    publisher);
+  return destroy_publisher(identifier, participant_info, publisher);
 }
 
 rmw_ret_t

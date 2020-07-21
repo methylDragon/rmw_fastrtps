@@ -19,6 +19,8 @@
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 
+#include "rmw/impl/cpp/macros.hpp"
+
 #include "rmw_fastrtps_shared_cpp/custom_participant_info.hpp"
 #include "rmw_fastrtps_shared_cpp/custom_publisher_info.hpp"
 #include "rmw_fastrtps_shared_cpp/rmw_common.hpp"
@@ -63,15 +65,12 @@ rmw_create_publisher(
   const rmw_qos_profile_t * qos_policies,
   const rmw_publisher_options_t * publisher_options)
 {
-  if (!node) {
-    RMW_SET_ERROR_MSG("node handle is null");
-    return nullptr;
-  }
-
-  if (node->implementation_identifier != eprosima_fastrtps_identifier) {
-    RMW_SET_ERROR_MSG("node handle not from this implementation");
-    return nullptr;
-  }
+  RMW_CHECK_ARGUMENT_FOR_NULL(node, nullptr);
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    node,
+    node->implementation_identifier,
+    eprosima_fastrtps_identifier,
+    return nullptr);
 
   rmw_publisher_t * publisher = rmw_fastrtps_cpp::create_publisher(
     static_cast<CustomParticipantInfo *>(node->context->impl->participant_info),
@@ -164,6 +163,19 @@ rmw_return_loaned_message_from_publisher(
 rmw_ret_t
 rmw_destroy_publisher(rmw_node_t * node, rmw_publisher_t * publisher)
 {
+  RMW_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(publisher, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    node,
+    node->implementation_identifier,
+    eprosima_fastrtps_identifier,
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    publisher,
+    publisher->implementation_identifier,
+    eprosima_fastrtps_identifier,
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+
   return rmw_fastrtps_shared_cpp::__rmw_destroy_publisher(
     eprosima_fastrtps_identifier, node, publisher);
 }
